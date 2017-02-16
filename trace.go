@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 )
 
 func (p *parser) printTrace(a ...interface{}) {
@@ -22,18 +23,18 @@ type tab int
 
 func (t tab) pre() {
 	for i := 0; i < int(t); i++ {
-		fmt.Print("\t")
+		fmt.Fprint(os.Stderr, "\t")
 	}
 }
-func (t tab) Printf(fm string, i ...interface{}) { t.pre(); fmt.Printf(fm, i...) }
-func (t tab) Println(i ...interface{})           { t.pre(); fmt.Println(i...) }
+func (t tab) Printf(fm string, i ...interface{}) { t.pre(); fmt.Fprintf(os.Stderr, fm, i...) }
+func (t tab) Println(i ...interface{})           { t.pre(); fmt.Fprintln(os.Stderr,i...) }
 
 var Tab tab
 
 func println(i Item) {
 	print(i)
-	fmt.Println()
-	fmt.Println()
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr)
 }
 
 func print(i Item) {
@@ -41,7 +42,7 @@ func print(i Item) {
 	case *Repeat:
 		Tab.Printf("%#v\n", t)
 	case *Run:
-		//Tab.Printf("Run: bytes=%q\n", t.s)
+		Tab.Printf("%#v\n", t)
 		Tab++
 		for _, v := range t.items {
 			print(v)

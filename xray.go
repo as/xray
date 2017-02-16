@@ -78,18 +78,22 @@ func common(b byte) bool {
 func main() {
 	p := &parser{br: bufio.NewReader(os.Stdin)}
 	items := p.parse()
+	
+	for i := range items{
+		p.typeCheck(items[i])
+	}
 	for i, v := range items {
-		fmt.Printf("Item %d: ", i)
+		fmt.Printf("Item: %d, %#v\n", i, v)
 		print(v)
 		switch t := v.(type) {
 		case *Run:
 			i := 0
-			for i = range t.s {
-				if common(t.s[i]) {
+			for i = range t.v {
+				if common(t.v[i]) {
 					break
 				}
 			}
-			if i == len(t.s) {
+			if i == len(t.v) {
 				// try integer types
 			} else {
 				// may be a string

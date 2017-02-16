@@ -1,6 +1,13 @@
 package main
-import "fmt"
-type Item interface{}
+import (
+	"fmt"
+	"bytes"
+	"github.com/as/bo"
+)
+
+type Item interface{
+	Bytes() []byte
+}
 
 type EOF struct {
 	err error
@@ -11,7 +18,7 @@ type Repeat struct {
 }
 
 type Run struct {
-	s     []byte
+	v     []byte
 	items []Item
 	len int
 }
@@ -55,6 +62,36 @@ type UTF16 struct {
 
 type PNG struct{
 	v []byte
+}
+
+func (t Repeat) Bytes()  []byte{ return bytes.Repeat([]byte{t.b}, t.n) }
+func (t Run)    Bytes()  []byte{ return t.v}
+func (t ASCII)  Bytes()  []byte{ return t.v }
+func (t UTF16)  Bytes()  []byte{ return t.v }
+func (t PNG)    Bytes()  []byte{ return t.v }
+func (t EOF)    Bytes()  []byte{ return nil }
+func (t Conform) Bytes()   []byte{
+	x := make([]byte, t.len+t.lenlen)
+	copy(x[t.lenlen:], t.Item.Bytes())
+	switch t.lenlen{
+	case 4:
+		bo.P32l(x,int32(t.len))
+	case 2:
+		bo.P16l(x,int16(t.len))
+	case 1:
+		x[0] = byte(t.len)
+	}
+ 	return x
+}
+func (t Number) Bytes() []byte{
+	x := make([]byte, t.width)
+	switch t.width{
+	case 4: bo.P32l(x, int32(t.v))
+	case 3: panic("bug: t.Number.Bytes()")
+	case 2: bo.P16l(x, int16(t.v))
+	case 1: x[0] = byte(t.v)
+	}
+    return x
 }
 
 // LastN returns the last N bytes

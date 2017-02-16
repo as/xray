@@ -41,7 +41,14 @@ func (p *parser) parseAny() (item Item) {
 		return EOF{p.lasterr}
 	}
 	if p.tok == p.last {
-		item = p.parseRepeat()
+		rep := p.parseRepeat()
+		if rep.n < 8{
+			item = &Run{
+				v: bytes.Repeat([]byte{rep.b}, rep.n),
+			}
+		} else {
+			item = rep
+		}
 	} else {
 		item = p.parseRun()
 	}
@@ -62,21 +69,28 @@ func (p *parser) parseRun() (run *Run) {
 	defer un(trace(p, "parseRun"))
 	defer func() { fmt.Printf("parseRun: %#v\n", run) }()
 	run = &Run{
-		s: []byte{},
+		v: []byte{},
 		items: []Item{},
 	}
 	for p.last != p.tok && p.lasterr == nil {
-		run.s = append(run.s, p.last)
+		run.v = append(run.v, p.last)
 		p.next()
 	}
 	if p.err == nil {
-		run.s = append(run.s, p.last)
+		run.v = append(run.v, p.last)
 	}
-	p.parseRunData(run)
-	p.parseNUL(run)
-	p.parseConformData(run)
+
 
 	return
+}
+
+func (p *parser) typeCheck(it Item){
+	switch t := it.(type){
+	case *Run:
+		p.parseRunData(t)
+		p.parseNUL(t)
+		p.parseConformData(t)
+	}
 }
 
 // parseFunc parses the input by calling fn for every consecutive byte
@@ -161,7 +175,7 @@ func (p *parser) parseConformData(run *Run) {
 
 func (p *parser) parseRunData(run *Run) {
 	defer un(trace(p, "parseRunData"))
-	b := run.s
+	b := run.v
 
 	add := func(it Item) {
 		run.items = append(run.items, it)
