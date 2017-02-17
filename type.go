@@ -64,7 +64,16 @@ type PNG struct{
 }
 
 func (t Repeat) Bytes()  []byte{ return bytes.Repeat([]byte{t.b}, t.n) }
-func (t Run)    Bytes()  []byte{ return t.v}
+func (t Run)    Bytes()  []byte{
+	if len(t.items) == 0{
+		return t.v
+	}
+	buf := new(bytes.Buffer)
+	for _, v := range t.items{
+		buf.Write(v.Bytes())
+	}
+	return buf.Bytes()
+}
 func (t ASCII)  Bytes()  []byte{ return t.v }
 func (t UTF16)  Bytes()  []byte{ return t.v }
 func (t PNG)    Bytes()  []byte{ return t.v }

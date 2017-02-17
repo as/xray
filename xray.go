@@ -78,33 +78,8 @@ func common(b byte) bool {
 func main() {
 	p := &parser{br: bufio.NewReader(os.Stdin)}
 	items := p.parse()
-	
-	lastrun := false
-	n := len(items)
-	for i, it := range items{
-		switch t := it.(type){
-		case EOF:
-			break
-		case *Run:
-			if lastrun && false {
-				x := t
-				y := items[i-1].(*Run)
-				y.v = append(y.v, x.v...)
-				y.len += x.len
-				copy(items[i-1:], items[i:])
-				n--
-			}
-			lastrun=true
-		default:
-			lastrun=false
-		}
-	}
-	fmt.Printf("n, len = %d, %d\n", len(items), n)
-	items = items[:n]
-	
-	for i := range items{
-		p.typeCheck(items[i])
-	}
+	p.combineRuns(&items)
+	p.typeCheckAll(&items)
 	
 	for i, v := range items {
 		fmt.Printf("#%d, ", i)
