@@ -23,7 +23,6 @@ type Run struct {
 	len int
 }
 
-
 func (r *Run) Delete(i int) Item{
 	l := len(r.items)
 	if i >= l || i < 0 || l == 0{
@@ -74,12 +73,9 @@ func (t Conform) Bytes()   []byte{
 	x := make([]byte, t.len+t.lenlen)
 	copy(x[t.lenlen:], t.Item.Bytes())
 	switch t.lenlen{
-	case 4:
-		bo.P32l(x,int32(t.len))
-	case 2:
-		bo.P16l(x,int16(t.len))
-	case 1:
-		x[0] = byte(t.len)
+	case 4:bo.P32l(x,int32(t.len))
+	case 2:bo.P16l(x,int16(t.len))
+	case 1:x[0] = byte(t.len)
 	}
  	return x
 }
@@ -113,8 +109,8 @@ func (a *UTF16) LastN(n int) []byte{
 }
 
 func (a *ASCII) String() string{
-	return fmt.Sprintf("ascii=%q", a.v)
+	return fmt.Sprintf("%#v", a)
 }
 func (u *UTF16) String() string {
-	return fmt.Sprintf("utf16=%q", u.v)
+	return fmt.Sprintf("%#v", u)
 }

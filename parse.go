@@ -180,6 +180,11 @@ func (p *parser) parseRunData(run *Run) {
 	add := func(it Item) {
 		run.items = append(run.items, it)
 	}
+	debugadd := func(s string, it Item){
+		fmt.Printf("add item (%s): %#v\n", s, it)
+		add(it)
+	}
+	
 	for len(b) > 0 {
 		numeric := p.parseFunc(b, func(b byte) bool { return !common(b) && b != 0 })
 		advance := len(numeric)
@@ -191,21 +196,21 @@ func (p *parser) parseRunData(run *Run) {
 		for _, x := range numeric {
 			// to make things work, convert every number to be 1 byte wide
 			// future: size appropriately with multiple passes
-			add(&Number{int64(x), 1})
+			debugadd("numeric",&Number{int64(x), 1})
 		}
 		utfs := p.parseUTF16(b)
 		ascii := p.parseASCII(b)
 		if n := len(utfs.v) * 2; n > 0 {
-			add(utfs)
+			debugadd("utf16",utfs)
 			b = b[n:]
 		} else if n := len(ascii.v); n > 0 {
-			add(ascii)
+			debugadd("ascii",ascii)
 			b = b[n:]
 		} else {
 			// numeric function didn't parse this so just make progress for now
 			// possibly a stray null terminator
 			if len(b) > 0 {
-				add(&Number{int64(b[0]), 1})
+				debugadd("stray", &Number{int64(b[0]), 1})
 				b = b[1:]
 			}
 		}
@@ -229,6 +234,10 @@ func (p *parser) parseUTF16(b []byte) *UTF16 {
 		null = true
 		br.Write([]byte{0, 0})
 	}
+	if i == 0{
+		return &UTF16{}
+	}
+	fmt.Printf("i is %d and len(br) is %d\n", i, len(br.Bytes()))
 	return &UTF16{br.Bytes(), null}
 }
 
@@ -247,6 +256,9 @@ func (p *parser) parseASCII(b []byte) *ASCII {
 	if i+1 < len(b) && b[i+1] == 0 {
 		null = true
 		br.WriteByte(0)
+	}
+	if i == 0{
+		return &ASCII{}
 	}
 	return &ASCII{v: br.Bytes(), null: null}
 }
